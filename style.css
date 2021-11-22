@@ -7,6 +7,11 @@ body {
 
 #map,
 #pano {
-  height: 100%;
-  width: 100%;
+  height: 80%;
+  width: 40%;
+  visibility: visible;
+}
+
+#btn_update {
+    visibility: hidden;
 }
