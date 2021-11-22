@@ -55,7 +55,8 @@ var checkaround = 500;
         panorama = new google.maps.StreetViewPanorama(
             document.getElementById("pano"), {
                 motionTracking: true,
-                motionTrackingControl: true
+                motionTrackingControl: true,
+                streetViewControl: false,
             }
         );
         map = new google.maps.Map(document.getElementById("map"), {
@@ -63,6 +64,7 @@ var checkaround = 500;
             zoom: 16,
             streetViewControl: false,
         });
+        panorama.setMotionTracking(true);
     }
 
     function showError(error) {
@@ -96,7 +98,7 @@ var checkaround = 500;
             document.getElementById("pano"), {
                 // endable motion tracking
                 motionTracking: true,
-                motionTrackingControl: true
+                motionTrackingControl: true,
             }
         );
         // Set up the map.
@@ -118,6 +120,7 @@ var checkaround = 500;
                 console.error("Street View data not found for this location.")
             );
         });
+        panorama.setMotionTracking(true);
     }
 
     function processSVData({ data }) {
