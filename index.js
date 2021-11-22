@@ -56,7 +56,6 @@ var checkaround = 500;
             document.getElementById("pano"), {
                 motionTracking: true,
                 motionTrackingControl: true,
-                streetViewControl: false,
             }
         );
         map = new google.maps.Map(document.getElementById("map"), {
