@@ -1,0 +1,17 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#map,
+#pano {
+  height: 80%;
+  width: 40%;
+  visibility: visible;
+}
+
+#btn_update {
+    visibility: hidden;
+}
