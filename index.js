@@ -8,7 +8,7 @@ var myLat = 40;
 var myLng = -73;
 
 // default ny location
-var nyLat = 40.758896;
+var nyLat = 40.758096;
 var nyLng = -73.985130;
 
 /**Check in a perimeter of 50 meters for valid pano**/ 
@@ -91,7 +91,10 @@ var checkaround = 500;
     function initialize() {
         // set style of accordion
         document.getElementById("pano").style.height="80vh";
+        document.getElementById("panoText").remove();
+
         document.getElementById("map").style.height="80vh";
+        document.getElementById("mapText").remove();
 
         const position = { lat: nyLat, lng: nyLng };
         const sv = new google.maps.StreetViewService();

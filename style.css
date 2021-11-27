@@ -5,7 +5,7 @@ body {
   padding: 0;
 }
 
-#map,#pano {
+#mapText, #panoText {
   color: red
 }
 
@@ -27,4 +27,6 @@ body {
 
 .btn {
   margin-bottom: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
