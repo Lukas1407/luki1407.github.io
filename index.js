@@ -1,31 +1,160 @@
-var ball   = document.querySelector('.ball');
-var garden = document.querySelector('.garden');
-var output = document.querySelector('.output');
+var x = document.getElementById("initPos");
+var y = document.getElementById("myPos");
+// init location
+var initLat = 0;
+var initLng = 0;
+// default location
+var myLat = 40;
+var myLng = -73;
 
-var maxX = garden.clientWidth  - ball.clientWidth;
-var maxY = garden.clientHeight - ball.clientHeight;
+// default ny location
+var nyLat = 40.758896;
+var nyLng = -73.985130;
 
-function handleOrientation(event) {
-  var x = event.beta;  // In degree in the range [-180,180)
-  var y = event.gamma; // In degree in the range [-90,90)
+/**Check in a perimeter of 50 meters for valid pano**/ 
+var checkaround = 500;
 
-  output.textContent  = `beta : ${x}\n`;
-  output.textContent += `gamma: ${y}\n`;
+    function getLocation() {
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          };
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(setInitPosition, showError, options);
+        } else { 
+            x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+        initialize();
+    }
 
-  // Because we don't want to have the device upside down
-  // We constrain the x value to the range [-90,90]
-  if (x >  90) { x =  90};
-  if (x < -90) { x = -90};
+    function setInitPosition(position) {
+        initLat = position.coords.latitude;
+        initLng = position.coords.longitude;
+        document.getElementById("btn_update").style.visibility="visible"
+    }
 
-  // To make computation easier we shift the range of
-  // x and y to [0,180]
-  x += 90;
-  y += 90;
+    function updatePosition() {
+        navigator.geolocation.getCurrentPosition(setPosition);
+    }
 
-  // 10 is half the size of the ball
-  // It center the positioning point to the center of the ball
-  ball.style.top  = (maxY*y/180 - 10) + "px";
-  ball.style.left = (maxX*x/180 - 10) + "px";
-}
+    function setPosition(position) {
+        myLat = position.coords.latitude;
+        myLng = position.coords.longitude;
 
-window.addEventListener('deviceorientation', handleOrientation);
+        // update pano
+        var latDif = initLat - myLat;
+        var lngDif = initLng - myLng;
+
+        var position = {lat: nyLat+latDif, lng: nyLng+lngDif};
+        sv = new google.maps.StreetViewService();
+        sv.getPanorama({ location: position, radius: checkaround }).then(processSVData);
+        panorama = new google.maps.StreetViewPanorama(
+            document.getElementById("pano"), {
+                motionTracking: true,
+                motionTrackingControl: true,
+                // panControl: false,
+                streetViewControl: false,
+            }
+        );
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: position,
+            zoom: 16,
+            streetViewControl: false,
+        });
+        panorama.setMotionTracking(true);
+    }
+
+    function showError(error) {
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                x.innerHTML = "User denied the request for Geolocation."
+                break;
+            case error.POSITION_UNAVAILABLE:
+                x.innerHTML = "Location information is unavailable."
+                break;
+            case error.TIMEOUT:
+                x.innerHTML = "The request to get user location timed out."
+                break;
+            case error.UNKNOWN_ERROR:
+                x.innerHTML = "An unknown error occurred."
+                break;
+        }
+    }
+
+    /*
+    * Click the map to set a new location for the Street View camera.
+    */
+    let map;
+    let panorama;
+
+    function initialize() {
+        // set style of accordion
+        document.getElementById("pano").style.height="80vh";
+        document.getElementById("map").style.height="80vh";
+
+        const position = { lat: nyLat, lng: nyLng };
+        const sv = new google.maps.StreetViewService();
+
+        panorama = new google.maps.StreetViewPanorama(
+            document.getElementById("pano"), {
+                // endable motion tracking
+                motionTracking: true,
+                motionTrackingControl: true,
+                panControl: false,
+            }
+        );
+        // Set up the map.
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: position,
+            zoom: 16,
+            streetViewControl: false,
+        });
+        // Set the initial Street View camera to the center of the map
+        sv.getPanorama({ location: position, radius: checkaround }).then(processSVData);
+        // Look for a nearby Street View panorama when the map is clicked.
+        // getPanorama will return the nearest pano when the given
+        // radius is 50 meters or less.
+        map.addListener("click", (event) => {
+            sv.getPanorama({ location: event.latLng, radius: checkaround })
+            .then(processSVData)
+            .catch((e) =>
+                // no valid street view was found
+                console.error("Street View data not found for this location.")
+            );
+        });
+        panorama.setMotionTracking(true);
+    }
+
+    function processSVData({ data }) {
+        const location = data.location;
+        const marker = new google.maps.Marker({
+            position: location.latLng,
+            map,
+            title: location.description,
+        });
+
+        panorama.setPano(location.pano);
+        panorama.setPov({
+            heading: 270,
+            pitch: 0,
+        });
+        panorama.setVisible(true);
+        marker.addListener("click", () => {
+            const markerPanoID = location.pano;
+
+            // Set the Pano to use the passed panoID.
+            panorama.setPano(markerPanoID);
+            panorama.setPov({
+                heading: 270,
+                pitch: 0,
+            });
+        panorama.setVisible(true);
+        });
+    }
+
+    function getNewPano() {
+        getLocation();
+        const position = { lat: nyLat, lng: nyLng };
+        sv.getPanorama({ location: position, radius: checkaround }).then(processSVData);
+    }
